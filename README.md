@@ -1,5 +1,13 @@
 # Time Tracker
 Rust command line utility to track time spent on various projects. Mainly a vehicle to start learning Rust and to play with git for source control.
+
+## Alternatives
+There are many alternatives on https://crates.io. One of it is *rtw*, a *Timerwarrior* clone in rust. For effective usage I would propose usage of that.
+
+https://crates.io/crates/rtw
+
+~Maik
+
 ## Installation
 No binaries, just clone project and run.
 ## Usage
