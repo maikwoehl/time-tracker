@@ -1,5 +1,4 @@
 use std::env;
-use std::error::Error;
 use std::fs;
 use std::fs::OpenOptions;
 use std::io;
@@ -43,7 +42,7 @@ fn file_exists(filename: &str) -> bool {
 }
 
 // Check to see if the timer is running
-fn print_status(quick: bool) -> Result<(), Box<Error>> {
+fn print_status(quick: bool) -> Result<bool, io::Error> {
     if file_exists("timer.csv") {
         if !quick {
             println!("Timer is running");
@@ -98,7 +97,7 @@ fn print_status(quick: bool) -> Result<(), Box<Error>> {
         );
     }
     
-    Ok(())
+    Ok(true)
 }
 
 // Print program usage
@@ -112,7 +111,7 @@ fn print_usage(program: &str, opts: Options) {
 
 // initial print hours function just to test reading in log file
 // Just reads the log csv file and prints it out
-fn print_hours(quash: bool) -> Result<(), Box<Error>> {
+fn print_hours(quash: bool) -> Result<bool, io::Error> {
     if file_exists("logger.csv") {
         // read start timer struct from timer file
         let mut counter = 0;
@@ -151,12 +150,12 @@ fn print_hours(quash: bool) -> Result<(), Box<Error>> {
         println!("Unable to Total. No logfile.");
     }
 
-    Ok(())
+    Ok(true)
 }
 
 // print hours tracked in terms of weeks
 // need to extend to print on project basis
-fn print_weeks(quash: bool) -> Result<(), Box<Error>> {
+fn print_weeks(quash: bool) -> Result<bool, io::Error> {
     if file_exists("logger.csv") {
         // read start timer struct from timer file
         let mut counter = 0;
@@ -201,7 +200,7 @@ fn print_weeks(quash: bool) -> Result<(), Box<Error>> {
         println!("Unable to Total. No logfile.");
     }
 
-    Ok(())
+    Ok(true)
 }
 
 // start timer - just writes the current time in seconds to a csv file
@@ -237,7 +236,7 @@ fn start_timer(project_code: &str, task: &str) {
 }
 
 // reads timer file and writes results to log file
-fn stop_timer(quash: bool) -> Result<(), Box<Error>> {
+fn stop_timer(quash: bool) -> Result<bool, io::Error> {
     if file_exists("timer.csv") {
         // read start timer struct from timer file
         let file = OpenOptions::new()
@@ -269,7 +268,7 @@ fn stop_timer(quash: bool) -> Result<(), Box<Error>> {
                 // use headers if it's the first time writing the logger file
                 let existence = file_exists("logger.csv");
                 // take timer data and add it to the log file along with the current time and the delta
-                let mut file = OpenOptions::new()
+                let file = OpenOptions::new()
                     .write(true)
                     .create(true)
                     .append(true)
@@ -316,10 +315,10 @@ fn stop_timer(quash: bool) -> Result<(), Box<Error>> {
         println!("There is no running timer to stop");
     }
 
-    Ok(())
+    Ok(true)
 }
 // reads timer file and writes results to log file
-fn cancel_timer() -> Result<(), Box<Error>> {
+fn cancel_timer() -> Result<bool, io::Error> {
     if file_exists("timer.csv") {
         // remove timer
         fs::remove_file("timer.csv").expect("Error deleting timer.");
@@ -327,7 +326,7 @@ fn cancel_timer() -> Result<(), Box<Error>> {
     } else {
         println!("There is no running timer to cancel.");
     }
-    Ok(())
+    Ok(true)
 }
 
 fn main() {

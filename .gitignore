@@ -8,3 +8,7 @@ timer.csv
 # VS Code files
 .vscode/
 time-tracker.code-workspace
+
+# vim
+*.swp
+*~
