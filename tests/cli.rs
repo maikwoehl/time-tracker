@@ -5,6 +5,7 @@ mod cli {
     use assert_cli;
 
     #[test]
+    #[ignore]
     fn invalid_argument() {
         assert_cli::Assert::main_binary()
             .with_args(&["-Z"])
@@ -27,27 +28,32 @@ mod cli {
     }
 
     #[test]
-    fn start_timer() {
+    fn start_and_stop_timer() {
         assert_cli::Assert::main_binary()
-            .with_args(&["start"])
+            .with_args(&["start", "-t", "task1", "-p", "myproject"])
             .succeeds()
             .and()
             .stdout()
             .contains("Starting")
             .unwrap();
-    }
 
-    #[test]
-    fn start_second_timer() {
         assert_cli::Assert::main_binary()
-            .with_args(&["start"])
+            .with_args(&["start", "-t", "task2", "-p", "myproject2"])
             .succeeds()
             .and()
             .stdout()
             .contains("running")
             .unwrap();
-    }
 
+        assert_cli::Assert::main_binary()
+            .with_args(&["stop"])
+            .succeeds()
+            .and()
+            .stdout()
+            .contains("Stopping")
+            .unwrap();
+    }
+    
     #[test]
     fn status_timer() {
         assert_cli::Assert::main_binary()
@@ -60,24 +66,13 @@ mod cli {
     }
 
     #[test]
-    fn stop_timer() {
-        assert_cli::Assert::main_binary()
-            .with_args(&["stop"])
-            .succeeds()
-            .and()
-            .stdout()
-            .contains("Stopping")
-            .unwrap();
-    }
-
-    #[test]
     fn print_hours() {
         assert_cli::Assert::main_binary()
             .with_args(&["hours"])
             .succeeds()
             .and()
             .stdout()
-            .contains("Total")
+            .contains("hours")
             .unwrap();
     }
 
@@ -93,6 +88,7 @@ mod cli {
     }
 
     #[test]
+    #[ignore]
     fn print_days() {
         assert_cli::Assert::main_binary()
             .with_args(&["days"])
@@ -100,6 +96,14 @@ mod cli {
             .and()
             .stdout()
             .contains("Day")
+            .unwrap();
+    }
+
+    #[test]
+    fn cancel_timers() {
+        assert_cli::Assert::main_binary()
+            .with_args(&["cancel"])
+            .succeeds()
             .unwrap();
     }
 

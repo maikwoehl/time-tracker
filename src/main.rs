@@ -14,36 +14,19 @@ use getopts::Options;
 extern crate chrono;
 use chrono::prelude::*;
 
-// Struct for entries in the project logging file
-#[derive(Debug, Deserialize, Serialize)]
-struct Unit {
-    project_code: String,
-    start_time: u64,
-    end_time: u64,
-    duration: u64,
-    task: String,
-}
+mod unit;
+mod timer;
 
-// Struct for a running timer
-#[derive(Debug, Deserialize, Serialize)]
-struct Timer {
-    start_time: u64,
-    project_code: String,
-    task: String,
-}
+use unit::Unit;
+use timer::Timer;
 
-// function that checks if a file exists
-fn file_exists(filename: &str) -> bool {
-    if Path::new(filename).exists() {
-        return true;
-    } else {
-        return false;
-    }
-}
+// TODO: Make config.ron file for that
+const TIMER_FILE: &str = "timer.csv";
+const LOGGER_FILE: &str = "logger.csv";
 
 // Check to see if the timer is running
 fn print_status(quick: bool) -> Result<bool, io::Error> {
-    if file_exists("timer.csv") {
+    if Path::new(TIMER_FILE).exists() {
         if !quick {
             println!("Timer is running");
         }
@@ -52,7 +35,7 @@ fn print_status(quick: bool) -> Result<bool, io::Error> {
             .read(true)
             .create(false)
             .append(false)
-            .open("timer.csv")
+            .open(TIMER_FILE)
             .unwrap();
         let mut rdr = csv::ReaderBuilder::new()
             .has_headers(false)
@@ -112,14 +95,14 @@ fn print_usage(program: &str, opts: Options) {
 // initial print hours function just to test reading in log file
 // Just reads the log csv file and prints it out
 fn print_hours(quash: bool) -> Result<bool, io::Error> {
-    if file_exists("logger.csv") {
+    if Path::new(LOGGER_FILE).exists() {
         // read start timer struct from timer file
         let mut counter = 0;
         let file = OpenOptions::new()
             .read(true)
             .create(false)
             .append(false)
-            .open("logger.csv")
+            .open(LOGGER_FILE)
             .unwrap();
         let mut rdr = csv::ReaderBuilder::new()
             .has_headers(true)
@@ -156,7 +139,7 @@ fn print_hours(quash: bool) -> Result<bool, io::Error> {
 // print hours tracked in terms of weeks
 // need to extend to print on project basis
 fn print_weeks(quash: bool) -> Result<bool, io::Error> {
-    if file_exists("logger.csv") {
+    if Path::new(LOGGER_FILE).exists() {
         // read start timer struct from timer file
         let mut counter = 0;
         let mut week_pointer = 0;
@@ -164,7 +147,7 @@ fn print_weeks(quash: bool) -> Result<bool, io::Error> {
             .read(true)
             .create(false)
             .append(false)
-            .open("logger.csv")
+            .open(LOGGER_FILE)
             .unwrap();
         let mut rdr = csv::ReaderBuilder::new()
             .has_headers(true)
@@ -206,14 +189,14 @@ fn print_weeks(quash: bool) -> Result<bool, io::Error> {
 // start timer - just writes the current time in seconds to a csv file
 fn start_timer(project_code: &str, task: &str) {
     // don't start a new timer if one is running
-    if file_exists("timer.csv") {
+    if Path::new(TIMER_FILE).exists() {
         println!("Timer is already running");
     } else {
         // create csv writer and write start time and project code
         let file = OpenOptions::new()
             .write(true)
             .create(true)
-            .open("timer.csv")
+            .open(TIMER_FILE)
             .unwrap();
         let mut wtr = csv::WriterBuilder::new()
             .has_headers(false)
@@ -237,13 +220,13 @@ fn start_timer(project_code: &str, task: &str) {
 
 // reads timer file and writes results to log file
 fn stop_timer(quash: bool) -> Result<bool, io::Error> {
-    if file_exists("timer.csv") {
+    if Path::new(TIMER_FILE).exists() {
         // read start timer struct from timer file
         let file = OpenOptions::new()
             .read(true)
             .create(false)
             .append(false)
-            .open("timer.csv")
+            .open(TIMER_FILE)
             .unwrap();
         let mut rdr = csv::ReaderBuilder::new()
             .has_headers(false)
@@ -266,13 +249,13 @@ fn stop_timer(quash: bool) -> Result<bool, io::Error> {
                     time_difference / 60 % 60
                 );
                 // use headers if it's the first time writing the logger file
-                let existence = file_exists("logger.csv");
+                let existence = Path::new(LOGGER_FILE).exists();
                 // take timer data and add it to the log file along with the current time and the delta
                 let file = OpenOptions::new()
                     .write(true)
                     .create(true)
                     .append(true)
-                    .open("logger.csv")
+                    .open(LOGGER_FILE)
                     .unwrap();
                 if existence {
 //                    println!("Building write without any headers");
@@ -309,7 +292,7 @@ fn stop_timer(quash: bool) -> Result<bool, io::Error> {
                 println!("Timer has been running for less than 2 minutes, discarding...");
             }
             // remove timer
-            fs::remove_file("timer.csv").expect("Error deleting timer.");
+            fs::remove_file(TIMER_FILE).expect("Error deleting timer.");
         }
     } else {
         println!("There is no running timer to stop");
@@ -319,9 +302,9 @@ fn stop_timer(quash: bool) -> Result<bool, io::Error> {
 }
 // reads timer file and writes results to log file
 fn cancel_timer() -> Result<bool, io::Error> {
-    if file_exists("timer.csv") {
+    if Path::new(TIMER_FILE).exists() {
         // remove timer
-        fs::remove_file("timer.csv").expect("Error deleting timer.");
+        fs::remove_file(TIMER_FILE).expect("Error deleting timer.");
         println!("Timer cancelled.");
     } else {
         println!("There is no running timer to cancel.");
@@ -329,6 +312,7 @@ fn cancel_timer() -> Result<bool, io::Error> {
     Ok(true)
 }
 
+// TODO: Make defaults and create structs the rust way
 fn main() {
     // parse program arguments using getopts crate
     let args: Vec<String> = env::args().collect();
